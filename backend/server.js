@@ -4,12 +4,11 @@ require('dotenv').config(); // Load environment variables from a .env file
 const express = require('express');
 const { Pool } = require("pg");
 const cors = require('cors');
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-const app = express();   // Create an instance of the Express application
-app.use(cors());         // Enable CORS for all routes
-app.use(express.json()); // Middleware to parse JSON bodies in incoming requests
-
-const pool = new Pool({ // Create a new connection pool to the PostgreSQL database
+const pool = new Pool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -18,7 +17,6 @@ const pool = new Pool({ // Create a new connection pool to the PostgreSQL databa
     ssl: { rejectUnauthorized: false }
 });
 
-// Create the grades table if it doesn't exist yet
 pool.query(` 
   CREATE TABLE IF NOT EXISTS grades (
     id SERIAL PRIMARY KEY,
@@ -28,19 +26,17 @@ pool.query(`
 `);
 
 // Insert Grade
-app.post("/add-grade", async (req, res) => { // Define a POST route to add a new grade
+app.post("/add-grade", async (req, res) => {
 
     try {
-
         console.log("BODY:", req.body);
-        const { studentId, grade } = req.body; // Extract student_id and grade from the request body
-        console.log(`Adding grade ${grade} for student ${studentId}`); // Log the received data for debugging
-        await pool.query( // Insert the new grade into the database
-            "INSERT INTO grades (student_id, grade) VALUES ($1, $2)", // Use parameterized query to prevent SQL injection
+        const { studentId, grade } = req.body;
+        await pool.query(
+            "INSERT INTO grades (student_id, grade) VALUES ($1, $2)",
             [studentId, grade]
         );
         console.log(`Added grade ${grade} for student ${studentId}`); // Log the added grade for debugging
-        res.json({ message: "Grade added successfully" }); // Send a success response
+        res.json({ message: "Grade added successfully" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Failed to add grade" });
@@ -49,13 +45,15 @@ app.post("/add-grade", async (req, res) => { // Define a POST route to add a new
 
 // Get all grades + average
 app.get("/grades", async (req, res) => {
-    const result = await pool.query("SELECT * FROM grades");
-    const avg = await pool.query("SELECT AVG(grade) FROM grades");
+    const result = await pool.query(`
+        SELECT student_id, grade, AVG(grade) OVER() AS average
+        FROM grades
+    `);
 
     res.json({
         studentIds: result.rows.map(r => r.student_id),
         grades: result.rows.map(r => r.grade),
-        average: avg.rows[0].avg
+        average: result.rows[0].average
     });
 });
 
