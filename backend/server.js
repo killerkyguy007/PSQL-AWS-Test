@@ -15,9 +15,7 @@ const pool = new Pool({ // Create a new connection pool to the PostgreSQL databa
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    ssl: { rejectUnauthorized: false }
 });
 
 // Create the grades table if it doesn't exist yet
@@ -36,7 +34,7 @@ app.post("/add-grade", async (req, res) => { // Define a POST route to add a new
 
         console.log("BODY:", req.body);
         const { studentId, grade } = req.body; // Extract student_id and grade from the request body
-
+        console.log(`Adding grade ${grade} for student ${studentId}`); // Log the received data for debugging
         await pool.query( // Insert the new grade into the database
             "INSERT INTO grades (student_id, grade) VALUES ($1, $2)", // Use parameterized query to prevent SQL injection
             [studentId, grade]
@@ -55,7 +53,8 @@ app.get("/grades", async (req, res) => {
     const avg = await pool.query("SELECT AVG(grade) FROM grades");
 
     res.json({
-        grades: result.rows,
+        studentIds: result.rows.map(r => r.student_id),
+        grades: result.rows.map(r => r.grade),
         average: avg.rows[0].avg
     });
 });
