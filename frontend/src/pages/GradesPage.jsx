@@ -18,7 +18,7 @@ function GradesPage() {
       <h2>All Grades</h2>
       {data.grades.map((g) => (
         <p key={g.id}>
-          {g.studentId} — {g.grade}
+          {g.student_id} — {g.grade}
         </p>
       ))}
 

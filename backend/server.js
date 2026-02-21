@@ -33,6 +33,8 @@ pool.query(`
 app.post("/add-grade", async (req, res) => { // Define a POST route to add a new grade
 
     try {
+
+        console.log("BODY:", req.body);
         const { studentId, grade } = req.body; // Extract student_id and grade from the request body
 
         await pool.query( // Insert the new grade into the database
