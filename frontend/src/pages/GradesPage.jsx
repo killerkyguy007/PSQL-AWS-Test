@@ -1,4 +1,8 @@
-
+/* 
+* Kyran Day, 02/2026
+* This page is for displaying all grades and the average grade.
+* It fetches the data from the backend and renders it in a simple format.
+*/
 import { useEffect, useState } from "react";
 
 function GradesPage() {
@@ -11,14 +15,13 @@ function GradesPage() {
   }, []);
 
   if (!data) return <p>Loading...</p>;
-  console.log(data); // TODO: TEMP FOR DEV
 
   return (
     <div>
       <h2>All Grades</h2>
-      {data.grades.map((g) => (
-        <p key={g.id}>
-          {g.studentId} — {g.grade}
+      {data.studentIds.map((id, i) => (
+        <p key={i}>
+          {id}: {data.grades[i]}
         </p>
       ))}
 
